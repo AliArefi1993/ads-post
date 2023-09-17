@@ -34,8 +34,10 @@ class CRUDUser:
         self,
         db: Session,
         user: schemas.UserCreate,
+        hased_password: str
     ) -> models.User:
-        db_user = models.User(**user.dict())
+        db_user = models.User(**{"email": user.email, "full_name": user.full_name,
+                              "disabled": user.disabled, "hashed_password": hased_password})
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
@@ -46,9 +48,11 @@ class CRUDUser:
         db: Session,
         new_user: schemas.UserUpdate,
         old_user: models.User,
+        hashed_password: str
     ) -> models.User:
         db_user = db.query(models.User).filter(models.User.id == old_user.id)
-        db_user.update(new_user.dict())
+        db_user.update({"email": new_user.email, "full_name": new_user.full_name,
+                        "disabled": new_user.disabled, "hashed_password": hashed_password})
         db.commit()
         db_user = db_user.first()
         return db_user

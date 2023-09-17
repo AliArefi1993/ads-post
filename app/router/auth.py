@@ -1,5 +1,7 @@
 
 
+from app.dependencies import get_db
+from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from typing import Union
 from app.db import schemas, models, crud
@@ -18,8 +20,8 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 fake_users_db = {
-    "admin": {
-        "username": "admin",
+    "ali": {
+        "username": "ali",
         "full_name": "admin",
         "email": "johndoe@example.com",
         "hashed_password": "$2b$12$Bsz73tnfgBwFxVDXS/.wbeeM7MQKmPFroy31S3wzs5wVYbgICbmLq",
@@ -96,24 +98,31 @@ def create_access_token(data: dict, expires_delta: Union[timedelta, None] = None
     return encoded_jwt
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    print("heeee----------------------")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
+            print("heeee----------------------2")
+
             raise credentials_exception
         token_data = schemas.TokenData(username=username)
     except JWTError:
+        print("heeee----------------------3")
+
         raise credentials_exception
-    user = get_user(fake_users_db, username=token_data.username)
-    if user is None:
+    db_user = db.query(models.User).filter(
+        models.User.email == token_data.username).first()
+    if db_user is None:
         raise credentials_exception
-    return user
+
+    return db_user
 
 
 async def get_current_active_user(current_user: schemas.User = Depends(get_current_user)):
@@ -123,10 +132,13 @@ async def get_current_active_user(current_user: schemas.User = Depends(get_curre
 
 
 @router.post("/token", response_model=schemas.Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(
-        fake_users_db, form_data.username, form_data.password)
-    if not user:
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    # user = authenticate_user(
+    #     fake_users_db, form_data.username, form_data.password)
+
+    db_user = db.query(models.User).filter(
+        models.User.email == form_data.username).first()
+    if not db_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -134,7 +146,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": db_user.email}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
@@ -147,3 +159,21 @@ async def read_users_me(current_user: schemas.User = Depends(get_current_active_
 @router.get("/users/me/items/")
 async def read_own_items(current_user: schemas.User = Depends(get_current_active_user)):
     return [{"item_id": "Foo", "owner": current_user.username}]
+
+
+# @router.post("/login")
+# async def login(user: models.User, db: Session = Depends(get_db)):
+#     # Query the database to find the user by username
+#     db_user = db.query(models.User).filter(
+#         models.User.username == user.username).first()
+
+#     if db_user is None:
+#         raise HTTPException(status_code=400, detail="User not found")
+
+#     # Compare the hashed password (use a password hashing library)
+#     if not verify_password(user.password, db_user.password):
+#         raise HTTPException(status_code=401, detail="Incorrect password")
+
+#     # Generate and return the JWT token
+#     access_token = create_access_token(data={"sub": user.username})
+#     return {"access_token": access_token, "token_type": "bearer"}

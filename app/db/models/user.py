@@ -13,3 +13,6 @@ class User(Base):
     full_name = Column(String)
     hashed_password = Column(String)
     disabled = Column(Boolean)
+
+    adses = relationship("Ads", back_populates="owner")
+    comment = relationship("Comment", uselist=False, back_populates="owner")

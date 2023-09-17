@@ -16,21 +16,10 @@ class AdsBase(BaseModel):
         orm_mode = True
 
 
-# class CategoryQuestionGetter(GetterDict):
-#     def get(self, key: str, default: Any = None) -> Any:
-#         if key in {'id', 'name'}:
-#             return getattr(self._obj.category, key)
-#         else:
-#             return super(CategoryQuestionGetter, self).get(key, default)
-
-
-# class CategoryNameWeight(BaseModel):
-#     name: str = None
-#     weight: float = None
-
-#     class Config:
-#         orm_mode = True
-#         getter_dict = CategoryQuestionGetter
+class CommentSchema(BaseModel):
+    id: int
+    text: str
+    owner_id: int
 
 
 class AdsCreate(AdsBase):
@@ -50,16 +39,16 @@ class Ads(AdsBase):
 
 class AdsDetail(AdsBase):
     id: int
+    owner_id: Optional[int] = None
+    comments: List[CommentSchema] = []
 
     class Config:
         orm_mode = True
 
 
-
 # class CategoryQuestionBase(BaseModel):
 #     id: int
 #     weight: float
-
 
 
 # class CategoryListUpdate(BaseModel):

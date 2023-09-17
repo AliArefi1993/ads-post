@@ -34,8 +34,9 @@ class CRUDAds:
         self,
         db: Session,
         ads: schemas.AdsCreate,
+        owner_id: int
     ) -> models.Ads:
-        db_ads = models.Ads(**ads.dict())
+        db_ads = models.Ads(**ads.dict(), owner_id=owner_id)
         db.add(db_ads)
         db.commit()
         db.refresh(db_ads)
