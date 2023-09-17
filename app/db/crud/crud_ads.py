@@ -4,7 +4,7 @@ from fastapi import HTTPException, UploadFile
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
-from db import schemas, models
+from app.db import schemas, models
 
 
 class CRUDAds:
@@ -26,9 +26,9 @@ class CRUDAds:
     def get_multi(
         self, db: Session, offset: int = 0, limit: int = 100, title: Optional[str] = ""
     ) -> List[models.Ads]:
-        db_adses = db.query(models.Ads).filter(models.Ads.title.like(f"%{title}%")).offset(offset).limit(limit).all()
+        db_adses = db.query(models.Ads).filter(models.Ads.title.like(
+            f"%{title}%")).offset(offset).limit(limit).all()
         return db_adses
-
 
     def create(
         self,

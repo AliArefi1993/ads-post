@@ -3,7 +3,7 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import JSON
 
-from ..database import Base
+from app.db.database import Base
 
 
 class Ads(Base):
@@ -12,4 +12,3 @@ class Ads(Base):
     title = Column(String)
     text = Column(String)
     pic_path = Column(String)
-

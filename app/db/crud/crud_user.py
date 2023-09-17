@@ -4,7 +4,7 @@ from fastapi import HTTPException, UploadFile
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
-from db import schemas, models
+from app.db import schemas, models
 
 
 class CRUDUser:
@@ -26,9 +26,9 @@ class CRUDUser:
     def get_multi(
         self, db: Session, offset: int = 0, limit: int = 100
     ) -> List[models.User]:
-        db_users = db.query(models.User).filter().offset(offset).limit(limit).all()
+        db_users = db.query(models.User).filter().offset(
+            offset).limit(limit).all()
         return db_users
-
 
     def create(
         self,

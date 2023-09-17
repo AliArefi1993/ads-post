@@ -2,7 +2,7 @@
 
 from datetime import datetime, timedelta
 from typing import Union
-from db import schemas, models, crud
+from app.db import schemas, models, crud
 
 from fastapi import Depends, APIRouter, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -124,7 +124,8 @@ async def get_current_active_user(current_user: schemas.User = Depends(get_curre
 
 @router.post("/token", response_model=schemas.Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(fake_users_db, form_data.username, form_data.password)
+    user = authenticate_user(
+        fake_users_db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
