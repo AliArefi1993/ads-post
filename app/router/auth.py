@@ -1,19 +1,21 @@
-
+import os
 
 from app.dependencies import get_db
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from typing import Union
-from app.db import schemas, models, crud
+from app.db import schemas, models
 
 from fastapi import Depends, APIRouter, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from pydantic import BaseModel
 
 
-SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+SECRET_KEY = os.environ.get("SECRET_KEY")
+if SECRET_KEY is None:
+    raise RuntimeError("Please set SECRET_KEY environment.")
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -65,18 +67,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    print("heeee----------------------")
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
-            print("heeee----------------------2")
-
             raise credentials_exception
         token_data = schemas.TokenData(username=username)
     except JWTError:
-        print("heeee----------------------3")
-
         raise credentials_exception
     db_user = db.query(models.User).filter(
         models.User.email == token_data.username).first()

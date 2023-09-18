@@ -1,5 +1,5 @@
-from typing import List, Optional
-from fastapi import APIRouter, Depends, Response, UploadFile, File, Form, HTTPException
+from typing import List
+from fastapi import APIRouter, Depends, Response, HTTPException
 from sqlalchemy.orm import Session
 from app.dependencies import get_db
 from app.db import schemas, models, crud
@@ -29,7 +29,6 @@ def get_comment(comment_id: int, db: Session = Depends(get_db)):
 
 @router.post("/comment", tags=['comment'], response_model=schemas.Comment, dependencies=[Depends(get_current_active_user)])
 def create_comment(comment: schemas.CommentCreate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)):
-    print("get_current_active_user.id")
     db_comment = crud.comment.create(db, comment, current_user.id)
     return db_comment
 
