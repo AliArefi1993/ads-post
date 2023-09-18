@@ -5,7 +5,7 @@
 #### Project Requirements
 Install project requirements with this command.
 ```
-pip install -r requirements.txt
+pip install -r app/requirements.txt
 ```
 #### PostgreSQL Database
 Install PostgreSQL or use docker to run an instance of PostgreSQL.
