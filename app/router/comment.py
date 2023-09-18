@@ -5,7 +5,6 @@ from app.dependencies import get_db
 from app.db import schemas, models, crud
 from app.router import get_current_active_user
 
-# router = APIRouter(dependencies=[Depends(get_current_active_user)])
 router = APIRouter()
 
 

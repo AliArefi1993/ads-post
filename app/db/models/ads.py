@@ -13,8 +13,6 @@ class Ads(Base):
     text = Column(String)
     pic_path = Column(String)
 
-    # Define a foreign key to the User model
     owner_id = Column(Integer, ForeignKey("user.id"))
-    # Define a many-to-one relationship with the User model
     owner = relationship("User", back_populates="adses")
     comments = relationship("Comment", back_populates="ads")

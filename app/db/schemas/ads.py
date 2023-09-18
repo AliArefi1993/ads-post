@@ -44,12 +44,3 @@ class AdsDetail(AdsBase):
 
     class Config:
         orm_mode = True
-
-
-# class CategoryQuestionBase(BaseModel):
-#     id: int
-#     weight: float
-
-
-# class CategoryListUpdate(BaseModel):
-#     categories: List[CategoryQuestionBase]

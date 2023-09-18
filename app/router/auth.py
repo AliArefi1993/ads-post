@@ -13,48 +13,9 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 
 
-# to get a string like this run:
-# openssl rand -hex 32
 SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
-fake_users_db = {
-    "ali": {
-        "username": "ali",
-        "full_name": "admin",
-        "email": "johndoe@example.com",
-        "hashed_password": "$2b$12$Bsz73tnfgBwFxVDXS/.wbeeM7MQKmPFroy31S3wzs5wVYbgICbmLq",
-        "disabled": False,
-    },
-    "ikco": {
-        "username": "ikco",
-        "full_name": "ikco",
-        "email": "johndoe@example.com",
-        "hashed_password": "$2b$12$IDB0JAD3yqK7/UTi8Oht/ehUh3TbumYag2ej.2kxwUBjPf.T8xspu",
-        "disabled": False,
-    }
-}
-
-
-# class Token(BaseModel):
-#     access_token: str
-#     token_type: str
-
-
-# class TokenData(BaseModel):
-#     username: Union[str, None] = None
-
-
-# class User(BaseModel):
-#     username: str
-#     email: Union[str, None] = None
-#     full_name: Union[str, None] = None
-#     disabled: Union[bool, None] = None
-
-
-# class UserInDB(User):
-#     hashed_password: str
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -133,11 +94,11 @@ async def get_current_active_user(current_user: schemas.User = Depends(get_curre
 
 @router.post("/token", response_model=schemas.Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    # user = authenticate_user(
-    #     fake_users_db, form_data.username, form_data.password)
 
     db_user = db.query(models.User).filter(
         models.User.email == form_data.username).first()
+    if db_user and not verify_password(form_data.password, db_user.hashed_password):
+        db_user = None
     if not db_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -159,21 +120,3 @@ async def read_users_me(current_user: schemas.User = Depends(get_current_active_
 @router.get("/users/me/items/")
 async def read_own_items(current_user: schemas.User = Depends(get_current_active_user)):
     return [{"item_id": "Foo", "owner": current_user.username}]
-
-
-# @router.post("/login")
-# async def login(user: models.User, db: Session = Depends(get_db)):
-#     # Query the database to find the user by username
-#     db_user = db.query(models.User).filter(
-#         models.User.username == user.username).first()
-
-#     if db_user is None:
-#         raise HTTPException(status_code=400, detail="User not found")
-
-#     # Compare the hashed password (use a password hashing library)
-#     if not verify_password(user.password, db_user.password):
-#         raise HTTPException(status_code=401, detail="Incorrect password")
-
-#     # Generate and return the JWT token
-#     access_token = create_access_token(data={"sub": user.username})
-#     return {"access_token": access_token, "token_type": "bearer"}

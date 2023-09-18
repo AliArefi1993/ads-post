@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, Response, UploadFile, File, Form
+from fastapi import APIRouter, Depends, Response, UploadFile, File, Form, HTTPException
 from sqlalchemy.orm import Session
 from app.dependencies import get_db
 from app.db import schemas, models, crud
@@ -9,8 +9,6 @@ from passlib.context import CryptContext
 router = APIRouter()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# Function to hash a plain password
 
 
 def get_password_hash(password):
@@ -48,8 +46,10 @@ def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     "/user/{user_id}", tags=["user"], response_model=schemas.User, dependencies=[Depends(get_current_active_user)]
 )
 def edit_user(
-    user_id: int, user: schemas.UserUpdate, db: Session = Depends(get_db)
+    user_id: int, user: schemas.UserUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(get_current_active_user)
 ):
+    if user_id != current_user.id:
+        raise HTTPException(status_code=401, detail="Unauthorized access")
     hashed_password = get_password_hash(user.password)
     db_user = crud.user.get_or_404(db, user_id)
     db_user = crud.user.update(db, user, db_user, hashed_password)
